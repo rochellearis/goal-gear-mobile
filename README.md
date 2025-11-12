@@ -142,15 +142,136 @@ Kapan menggunakan hot restart:
 
 ---
 
-## Getting Started
+<details>
+<Summary><b>Tugas 8</b></Summary>
 
-This project is a starting point for a Flutter application.
+## Perbedaan antara `Navigator.push()` dan `Navigator.pushReplacement()` pada Flutter dan kapan menggunakannya dalam aplikasi Goal Gear
 
-A few resources to get you started if this is your first Flutter project:
+**`Navigator.push()`**
+- Menambahkan halaman baru ke dalam stack navigasi (tumpukan halaman). Halaman sebelumnya tetap tersimpan di dalam stack.
+- Pengguna dapat kembali ke halaman sebelumnya dengan menekan tombol back karena halaman lama tetap ada di bawah dan bisa kembali (back) ke sana.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Contoh:
+```
+Navigator.push(
+  context,
+  MaterialPageRoute(builder: (context) => const ProductFormPage()),
+),
+```
+Kasus diatas menggunakan `Navigator.push()` untuk membuka form pembuatan product yang sementara yang bisa dibatalkan. Pengguna bisa kembali ke halaman sebelumnya (back button).
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+**`Navigator.pushReplacement()`**
+- Mengganti halaman saat ini dengan halaman baru di stack navigasi. Halaman sebelumnya dihapus dari stack. Setelah `pushReplacement`, menekan back tidak akan kembali ke route yang digantikan (karena sudah dihapus).
+- Berguna untuk mengganti halaman saat keadaan berubah (mis. setelah login selesai, dsb). 
+- Pengguna tidak dapat kembali ke halaman yang diganti, tetapi langsung ke halaman sebelumnya.
+
+Contoh:
+```
+Navigator.pushReplacement(
+  context,
+  MaterialPageRoute(builder: (_) => MyHomePage()),
+);
+```
+Dalam kasus diatas, `Navigator.pushReplacement()` mengganti halaman saat ini dengan `MyHomePage()` dan menghapus halaman sebelumnya dari stack,
+sehingga pengguna tidak bisa kembali ke halaman lama dengan tombol back.
+
+---
+
+## Pemanfaatan hierarchy widget seperti `Scaffold`, `AppBar`, dan `Drawer` untuk membangun struktur halaman yang konsisten
+
+- Meletakkan `Scaffold` sebagai container utama untuk setiap layar (screens) (`MyHomePage` dan `ProductFormPage`), sehingga setiap layar punya struktur dasar yang konsisten (area AppBar, drawer, body).
+
+- Di tiap `Scaffold`, menambahkan `AppBar` sehingga setiap halaman punya header konsisten: judul, warna latar, dan styling yang terlihat seragam di sebagian besar halaman.
+
+- Menggunakan satu widget `LeftDrawer` terpisah dan memasangnya di properti `drawer` pada `Scaffold` di halaman-halaman yang butuh menu, sehingga isi drawer sama di banyak halaman (reuse komponen).
+
+- `LeftDrawer` berisi `DrawerHeader` dan `ListTile` untuk navigasi, `ListTile` memanggil `Navigator.push` atau `Navigator.pushReplacement`, artinya navigasi dilakukan dari drawer, bukan di setiap halaman secara terpisah.
+
+- Karena `LeftDrawer` dipakai di `MyHomePage` dan `ProductFormPage`, pengguna mendapatkan pengalaman navigasi dan tampilan sidebar yang konsisten di kedua layar.
+
+- Pada `MyHomePage`, memakai `AppBar` dengan warna dari `Theme.of(context).colorScheme.primary`, sementara di `ProductFormPage`, `AppBar` memakai `Colors.indigo`, ini menunjukkan pemanfaatan `AppBar` untuk kontrol tampilan header, walau ada sedikit perbedaan warna antar halaman.
+
+- Konten utama (body) tiap `Scaffold` diatur dengan layout yang jelas: `Column`, `GridView`, `SingleChildScrollView`, dll., sehingga area konten berada di bawah `AppBar` dan di samping drawer secara konsisten.
+
+- Untuk navigasi dari tombol/kartu (`ItemCard`), memanggil `Navigator.push` dan juga menampilkan `SnackBar` lewat `ScaffoldMessenger.of(context)`, memanfaatkan `Scaffold` sebagai host untuk pesan UI (snack bar).
+
+- Di halaman form, memanfaatkan `Scaffold` juga untuk menaruh tombol simpan dan dialog, serta menggunakan gaya input (`OutlineInputBorder, padding`) yang konsisten antar field sehingga form terlihat seragam dengan layout aplikasi lainnya.
+
+---
+
+## Kelebihan penggunaan layout widget seperti `Padding`, `SingleChildScrollView`, dan `ListView` saat menampilkan elemen-elemen form dan contohnya
+
+**`Padding`**
+Penggunaan widget Padding dalam desain antarmuka memberikan kelebihan dalam menciptakan ruang kosong yang konsisten di sekitar elemen-elemen form, sehingga meningkatkan keterbacaan dan organisasi visual. Dalam konteks form, Padding membantu memisahkan setiap field input dengan jelas, mengurangi kesan berdesakan, dan memberikan ruang pernapasan yang membuat interface terlihat lebih profesional. Selain itu, padding yang konsisten juga meningkatkan pengalaman pengguna dengan membuat elemen-eu lebih mudah dibaca dan diinteraksi, terutama pada perangkat mobile yang memiliki layar terbatas.
+Contoh:
+```
+Padding(
+  padding: const EdgeInsets.all(8.0),
+  child: TextFormField(
+    decoration: InputDecoration(
+      hintText: "Nama Produk",
+      labelText: "Nama Produk",
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(5.0),
+      ),
+    ),
+    // ... kode validator dan onChanged
+  ),
+),
+```
+
+**`SingleChildScrollView`**
+Widget SingleChildScrollView memberikan kelebihan crucial dalam menangani konten yang melebihi batas layar dengan memungkinkan scrolling vertikal. Pada form yang memiliki banyak field input seperti form tambah produk, penggunaan SingleChildScrollView memastikan semua elemen form tetap dapat diakses tanpa terpotong oleh batas layar perangkat. Hal ini sangat penting untuk menjaga usability aplikasi, terutama pada perangkat dengan layar kecil, karena pengguna dapat dengan mudah menggeser layar untuk mengisi seluruh field form tanpa kesulitan.
+Contoh:
+```
+body: Form(
+  key: _formKey,
+  child: SingleChildScrollView(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Semua field form berada di dalam sini
+        Padding(...), // Field Nama Produk
+        Padding(...), // Field Harga
+        // ... dan seterusnya
+      ],
+    ),
+  ),
+),
+```
+
+**`ListView`**
+ListView widget menawarkan kelebihan dalam menampilkan daftar elemen yang efisien dan dapat di-scroll, baik secara vertikal maupun horizontal. Dalam konteks navigation drawer, ListView sangat ideal karena secara otomatis menangani scrolling ketika jumlah menu melebihi tinggi layar, sekaligus mengoptimalkan performa dengan hanya merender elemen yang terlihat di layar. Ini memastikan pengalaman navigasi yang smooth dan konsisten, terlepas dari berapa banyak item menu yang ditambahkan ke dalam drawer.
+Contoh:
+```
+class LeftDrawer extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      child: ListView(
+        children: [
+          const DrawerHeader(...),
+          ListTile(...), // Menu Home
+          ListTile(...), // Menu Add Product
+        ],
+      ),
+    );
+  }
+}
+```
+
+---
+
+## Penyesuaian warna tema agar aplikasi Goal Gear memiliki identitas visual yang konsisten dengan brand toko
+
+- Telah menegaskan palet warna utama pada elemen navigasi dan form: AppBar di halaman utama diikat ke `Theme.of(context).colorScheme.primary` sementara AppBar halaman tambah produk dan tombol simpan menggunakan `Colors.indigo` dengan `foregroundColor: Colors.white`, sehingga bar navigasi dan tombol aksi menampilkan warna latar gelap dan teks putih yang konsisten.
+
+- Bagian drawer diberi identitas visual tersendiri melalui `DrawerHeader` yang menggunakan `Colors.blue` sebagai latar dan teks putih tebal untuk judul serta deskripsi, sehingga header drawer menjadi elemen berwarna yang mudah dikenali sebagai bagian dari brand.
+
+- Daftar item pada halaman utama dibuat menggunakan warna aksen per-item (`Colors.blue`, `Colors.green`, `Colors.red`) yang diteruskan ke `ItemCard` sebagai latar, dan setiap kartu menampilkan ikon serta teks berwarna putih untuk menjaga kontras dan keseragaman tampilan pada elemen-elemen berwarna.
+
+- Secara keseluruhan, penggunaan warna latar biru/indigo pada komponen navigasi dan tombol aksi, ditambah penggunaan teks/ikon putih pada latar berwarna serta pewarnaan aksen pada kartu produk, menunjukkan penyesuaian warna yang konsisten untuk membentuk identitas visual toko.
+
+</details>
+
+---
