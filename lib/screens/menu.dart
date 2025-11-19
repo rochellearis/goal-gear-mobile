@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:goal_gear/widgets/left_drawer.dart';
 import 'package:goal_gear/widgets/product_card.dart';
 import 'package:goal_gear/screens/productlist_form.dart'; // import ProductFormPage 
+import 'package:goal_gear/screens/product_entry_list.dart';
 
 class MyHomePage extends StatelessWidget {
   MyHomePage({super.key});
@@ -10,9 +11,10 @@ class MyHomePage extends StatelessWidget {
   final String npm = "2406429014"; //npm
   final String kelas = "B"; //kelas
   final List<ItemHomepage> items = [
-    ItemHomepage("All Products", Icons.shopping_bag, Colors.blue),
-    ItemHomepage("My Products", Icons.person, Colors.green),
-    ItemHomepage("Add Product", Icons.add_box_outlined, Colors.red),
+    ItemHomepage("All Products", Icons.shopping_bag, const Color(0xFF5459AC)),
+    ItemHomepage("My Products", Icons.person, const Color(0xFF52357B)),
+    ItemHomepage("Add Product", Icons.add_box_outlined, const Color(0xFF7F8CAA)),
+    ItemHomepage("Logout", Icons.logout_rounded, Colors.deepPurple)
   ];
 
   @override
@@ -90,6 +92,21 @@ class MyHomePage extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => const ProductFormPage(),
+                              ),
+                            );
+                          }
+                          else if (item.name == "My Products") {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ProductEntryListPage(onlyMine: true),
+                              ),
+                            );
+                          } else if (item.name == "All Products") {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ProductEntryListPage(),
                               ),
                             );
                           }
